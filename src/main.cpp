@@ -11,29 +11,30 @@
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_ros/transform_broadcaster.h>
 
-#include "uv_msgs/ImageBoundingBox.h"
-uv_msgs::ImageBoundingBox bbox_msg;
+#include "custom_uv_msgs/ImageBoundingBox.h"
+custom_uv_msgs::ImageBoundingBox bbox_msg;
 
 using namespace std;
 
 /* Global variables */
 #define humanFrameID "human_detected"
-#define fixedFrameID "kinect2_link"
+#define fixedFrameID "base_link"
 
 ros::Subscriber bbox_sub;
 ros::Subscriber pcd_sub;
 ros::Publisher pose_pub;
+ros::Publisher base_pub;
 
 vector<vector<float>> VectPose;
 bool ValidPose = false;
 int u_px, v_px;
 ros::Time bbox_time;
 
-void bboxCallback(const uv_msgs::ImageBoundingBox& msg_bbox) { 
+void bboxCallback(const custom_uv_msgs::ImageBoundingBox& msg_bbox) { 
   if (isnan(msg_bbox.cornerPoints[0].u) == false) {
     u_px = msg_bbox.cornerPoints[0].u + msg_bbox.width/2;
     v_px = msg_bbox.cornerPoints[0].v + msg_bbox.height/2;
-    //bbox_time = msg_bbox.header.stamp;
+    bbox_time = msg_bbox.header.stamp;
     ValidPose = true;
   }
 }
@@ -58,26 +59,28 @@ void pcdCallback(const sensor_msgs::PointCloud2ConstPtr& pCloud) {
     geometry_msgs::TransformStamped transformStamped;
     geometry_msgs::PoseStamped humanPose;
 
-    transformStamped.header.stamp = ros::Time::now();
-    transformStamped.header.frame_id = pCloud->header.frame_id;
-    transformStamped.child_frame_id = "human_detected";
+    ros::Time nau = ros::Time::now();
+    transformStamped.header.stamp = bbox_time;
+    transformStamped.header.frame_id = fixedFrameID; 
+    transformStamped.child_frame_id = humanFrameID;
     transformStamped.transform.translation.x = X;
-    transformStamped.transform.translation.y = Y;
-    transformStamped.transform.translation.z = Z;
+    transformStamped.transform.translation.y = Z;
+    transformStamped.transform.translation.z = 0;
     tf2::Quaternion q;
-    q.setRPY(-M_PI/2.0, M_PI/2.0, M_PI);
+    q.setRPY(0, 0, 0);
     transformStamped.transform.rotation.x = q.x();
     transformStamped.transform.rotation.y = q.y();
     transformStamped.transform.rotation.z = q.z();
     transformStamped.transform.rotation.w = q.w();
-
     br.sendTransform(transformStamped);
-    humanPose.header.stamp = ros::Time::now();
-    humanPose.header.frame_id ="human_detected";
-    humanPose.pose.position.x = X; //red
-    humanPose.pose.position.y = Y; //green
-    humanPose.pose.position.z = Z; //blue
+
+    humanPose.header.stamp = bbox_time;
+    humanPose.header.frame_id = fixedFrameID; 
+    humanPose.pose.position.x = X; 
+    humanPose.pose.position.y = Z; 
+    humanPose.pose.position.z = 0; 
     pose_pub.publish(humanPose);
+
   }
 }
 
@@ -89,7 +92,7 @@ int main(int argc, char **argv) {
   pcd_sub = nh.subscribe("/kinect2/qhd/points", 1000, pcdCallback);
 
   pose_pub = nh.advertise<geometry_msgs::PoseStamped>("/human/position", 1);
-  
+  base_pub = nh.advertise<geometry_msgs::PoseStamped>("/human/test_pose",1);
   while (ros::ok()) {
     ros::spinOnce();
   }
