@@ -14,6 +14,8 @@ using namespace std;
 #define humanFrameID "human_detected"
 #define fixedFrameID "base_link"
 
+string bbox_topic;
+
 ros::Time bbox_time;
 
 class PoseEstimator {
@@ -27,8 +29,8 @@ class PoseEstimator {
   
 public:
   PoseEstimator() {
-    hog_sub_ = nh_.subscribe("/hog/bounding_box", 1000, &PoseEstimator::hogCallback, this);
-    pcd_sub_ = nh_.subscribe("/uverto/camera/depth_registered/points", 1000, &PoseEstimator::pcdCallback, this);
+    hog_sub_ = nh_.subscribe(bbox_topic, 1000, &PoseEstimator::hogCallback, this);
+    pcd_sub_ = nh_.subscribe("/kinect2/qhd/points", 1000, &PoseEstimator::pcdCallback, this);
     pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("/pedestrian/position", 1);
   }
   void hogCallback(const bbox_position::ImageBoundingBox& bbox_msg) {
@@ -95,6 +97,7 @@ public:
 int main(int argc, char **argv) {
   ros::init(argc, argv, "pose_estimation");
   ros::NodeHandle nh;
+  nh.getParam("/bbox_topic", bbox_topic);
   PoseEstimator ic;
   ros::spin ();
   return 0;

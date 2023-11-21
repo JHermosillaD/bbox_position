@@ -1,0 +1,4 @@
+<launch>
+  <param name="/bbox_topic" type="string" value="/hog/bounding_box" />
+  <node name="PoseEstimator" pkg="bbox_position" type="pose_estimator" output="screen" />
+</launch>
