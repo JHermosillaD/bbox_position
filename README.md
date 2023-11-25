@@ -22,7 +22,7 @@ Edit file `launch/position_estimation.launch` by the appropriate value of parame
 
 Run the launcher.
 ```
-user@hostname:~/workspace$ roslaunch bbox_position position_estimation.launch
+user@hostname:~/workspace$ roslaunch bbox_position publish_bbox.launch
 ```
 ## Visualization
 The reference frame can be displayed in Rviz, the coordinates through topic `/pedestrian/position"`.
