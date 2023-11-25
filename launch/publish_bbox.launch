@@ -1,4 +1,6 @@
 <launch>
   <param name="/bbox_topic" type="string" value="/hog/bounding_box" />
+  <param name="/pcd_topic" type="string" value="/kinect2/qhd/points" />
+  <param name="/fixedFrameID" type="string" value="base_link" />
   <node name="PoseEstimator" pkg="bbox_position" type="pose_estimator" output="screen" />
 </launch>
